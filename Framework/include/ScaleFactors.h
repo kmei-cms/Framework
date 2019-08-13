@@ -281,7 +281,6 @@ private:
                 
                 const double eleNoTrigSF      = eleTightSF*eleIsoSF*eleRecoSF;
                 const double eleTotSF         = eleNoTrigSF*eleTrigSF; 
-
                 const double eleNoTrigPErr    = utility::addInQuad( eleTightPErr, eleIsoPErr, eleRecoPErr );
                 const double eleTotPErr       = utility::addInQuad( eleNoTrigPErr, eleTrigPErr );
 
@@ -526,23 +525,143 @@ private:
 
                     double muTotSF              = muMediumSF * muTrigSF;
                     double muTotSFPErr2         = 0.03*0.03 + muTrigSFPErr*muTrigSFPErr;
+=======
 
-                    if( filetag.find("2017") == std::string::npos ) {
+                const double eleNoTrigPErr    = utility::addInQuad( eleTightPErr, eleIsoPErr, eleRecoPErr );
+                const double eleTotPErr       = utility::addInQuad( eleNoTrigPErr, eleTrigPErr );
+
+                const double eleTotSFErr      = eleTotPErr*eleTotSF;
+                const double eleNoTrigSFErr   = eleNoTrigPErr*eleNoTrigSF;
+
+                totGoodElectronSF       *= eleTotSF; 
+                noTrigGoodElectronSF    *= eleNoTrigSF;
+
+                totGoodElectronSFPErr2  += eleTotPErr*eleTotPErr;
+                noTrigGoodElectronSFPErr2 += eleNoTrigPErr*eleNoTrigPErr;
+            }            
+        }
+
+        totGoodElectronSFErr    = std::sqrt(totGoodElectronSFPErr2) * totGoodElectronSF;
+        noTrigGoodElectronSFErr = std::sqrt(noTrigGoodElectronSFPErr2) * noTrigGoodElectronSF;
+
+        totGoodElectronSF_Up    = totGoodElectronSF + totGoodElectronSFErr;
+        totGoodElectronSF_Down  = totGoodElectronSF - totGoodElectronSFErr;
+
+        tr.registerDerivedVar( "totGoodElectronSF"+myVarSuffix_,      totGoodElectronSF );
+        tr.registerDerivedVar( "totGoodElectronSFErr"+myVarSuffix_,   totGoodElectronSFErr );
+        tr.registerDerivedVar( "totGoodElectronSF_Up"+myVarSuffix_,   totGoodElectronSF_Up );
+        tr.registerDerivedVar( "totGoodElectronSF_Down"+myVarSuffix_, totGoodElectronSF_Down );
+
+        tr.registerDerivedVar( "noTrigGoodElectronSF"+myVarSuffix_,   noTrigGoodElectronSF );
+        tr.registerDerivedVar( "noTrigGoodElectronSFErr"+myVarSuffix_, noTrigGoodElectronSFErr );
+
+        // --------------------------------------------------------------------------------------
+        // Adding code for implementing muon scale factors
+        // --------------------------------------------------------------------------------------
+        const auto& muons         = tr.getVec<TLorentzVector>("Muons");
+        const auto& goodMuons     = tr.getVec<bool>("GoodMuons"+myVarSuffix_);
+
+        double totGoodMuonSF      = 1.0, totGoodMuonSF_Up   = 1.0, totGoodMuonSF_Down = 1.0;
+        double totGoodMuonSFErr   = 0.0, totGoodMuonSFPErr2 = 0.0;
+
+        double noTrigGoodMuonSF   = 1.0, noTrigGoodMuonSFErr = 0.0, noTrigGoodMuonSFPErr2 = 0.0;
+        for( unsigned int imu = 0; imu < muons.size(); imu++ ) 
+        {            
+            if( !goodMuons.at(imu) ) continue;
+            
+            //Get the scale factor from the rootfile
+            const double mupt = muons.at(imu).Pt();
+            const double mueta = muons.at(imu).Eta();
+            int xbinMuMedium = -1, ybinMuMedium = -1, xbinMuIso = -1, ybinMuIso = -1, xbinMuTrig = -1, ybinMuTrig = -1;
+
+            if( runYear == "2016" ) 
+            {
+                //Find the bin indices (binned by x: pt and y: abs(eta) ) for the 2016 scale factor for both Medium ID and MiniIso of 0.2 (has only 20 bins) - same binning!
+                xbinMuMedium = findBin(muSFHistoMedium_, mupt,  "X");
+                ybinMuMedium = findBin(muSFHistoMedium_, abs(mueta), "Y");
+                //For consistency with 2017, copy the values over to these variables.
+                xbinMuIso = xbinMuMedium;
+                ybinMuIso = ybinMuMedium;
+                //Find the bin indices (binned by x: pt and y: eta ) for the 2016 scale factor for Data/MC Trigger Efficiency
+                xbinMuTrig = findBin(muSFHistoTrig_, mupt,  "X");
+                ybinMuTrig = findBin(muSFHistoTrig_, mueta, "Y");
+            } 
+            else if( runYear == "2017" ) 
+            {
+                //Find the bin indices (binned by x: pt and y: abs(eta) ) for the 2017 scale factor for Medium ID (has only 24 bins)
+                xbinMuMedium = findBin(muSFHistoMedium_, mupt,       "X");
+                ybinMuMedium = findBin(muSFHistoMedium_, abs(mueta), "Y");
+                //Find the bin indices (binned by x: pt and y: abs(eta) ) for the 2017 scale factor for MiniIso of 0.2 (has only 20 bins)
+                xbinMuIso = findBin(muSFHistoIso_, mupt,       "X");
+                ybinMuIso = findBin(muSFHistoIso_, abs(mueta), "Y");
+                //Find the bin indices (binned by x: pt and y: eta ) for the 2017 scale factor for Data/MC Trigger Efficiency
+                xbinMuTrig = findBin(muSFHistoTrig_, mupt,  "X");
+                ybinMuTrig = findBin(muSFHistoTrig_, mueta, "Y");
+            }
+            else if( runYear == "2018" )
+            {
+                //Find the bin indices (binned by x: pt and y: abs(eta) ) for the 2018 scale factor for Medium ID (has only 36 bins)
+                xbinMuMedium = findBin(muSFHistoMedium_, mupt,       "X");
+                ybinMuMedium = findBin(muSFHistoMedium_, abs(mueta), "Y");
+                //Find the bin indices (binned by x: pt and y: abs(eta) ) for the 2018 scale factor for MiniIso of 0.2 (has only 20 bins)
+                //The muon POG will not release MiniIso scale factors until the UltraLegacy, so we recommend to use the 2017 Data/FullSim SFs for MiniIso also for 2018
+                xbinMuIso = findBin(muSFHistoIso_, mupt,       "X");
+                ybinMuIso = findBin(muSFHistoIso_, abs(mueta), "Y");            
+            }
+>>>>>>> f90b3ea0c9e9721c86875bcb721d6bdef697295c
+
+            if( xbinMuMedium != -1 && ybinMuMedium != -1 && xbinMuIso != -1 && ybinMuIso != -1 ) 
+            {
+                //The SUSLepton Twiki claims that the errors in the histogrm are purely statistical and can be ignored and recommends a 3% error for each leg (ID+IP+ISO)
+                const double muMediumSF     = muSFHistoMedium_->GetBinContent( xbinMuMedium, ybinMuMedium );
+                const double muIsoSF        = muSFHistoIso_->GetBinContent( xbinMuIso, ybinMuIso );
+                const double muTrigSF       = (muSFHistoTrig_) ? muSFHistoTrig_->GetBinContent( xbinMuTrig, ybinMuTrig ) : 1.0;
+                const double muTrigSFErr    = (muSFHistoTrig_) ? muSFHistoTrig_->GetBinError( xbinMuTrig, ybinMuTrig ) : 0.0;
+                const double muTrigSFPErr   = muTrigSFErr/muTrigSF;
+
+                double muNoTrigSF     = muMediumSF * muIsoSF; 
+                double muTotSF        = muNoTrigSF * muTrigSF;
+
+                const double muNoTrigSFPErr2 = 0.03*0.03;
+                const double muTotSFPErr2   = muNoTrigSFPErr2 + muTrigSFPErr*muTrigSFPErr;
+                
+                if( runYear == "2016" ) 
+                {
                     //For the general track reconstruction they claim that the errors for the systematic still need to be finalized - does not seem to have been finalized as of Dec 2018
                     //This reconstruction value only exists for 2016 - SUS SF people say the 3% will include the reco scale factor uncertainty for now
-                        double muRecoSF         = muSFHistoReco_->Eval( mueta );
-                        muTotSF                 = muTotSF * muRecoSF;
-                    }
-
                     totNonIsoMuonSF           *= muTotSF;
                     totNonIsoMuonSFPErr2      += muTotSFPErr2;
+                    
+                    const double muRecoSF   = muSFHistoReco_->Eval( mueta );
+                    muTotSF           = muTotSF*muRecoSF;
+                    muNoTrigSF        = muNoTrigSF*muRecoSF;
                 }
+                totGoodMuonSF      *= muTotSF;
+                noTrigGoodMuonSF   *= muNoTrigSF;
+
+                totGoodMuonSFPErr2 += muTotSFPErr2;
+                noTrigGoodMuonSFPErr2 += muNoTrigSFPErr2;
             }
         }
 
         totNonIsoMuonSFErr    = std::sqrt(totNonIsoMuonSFPErr2) * totNonIsoMuonSF;
         totNonIsoMuonSF_Up    = totNonIsoMuonSF + totNonIsoMuonSFErr;
         totNonIsoMuonSF_Down  = totNonIsoMuonSF - totNonIsoMuonSFErr;
+        
+        totGoodMuonSFErr    = std::sqrt(totGoodMuonSFPErr2)*totGoodMuonSF;
+        totGoodMuonSF_Up    = totGoodMuonSF + totGoodMuonSFErr;
+        totGoodMuonSF_Down  = totGoodMuonSF - totGoodMuonSFErr;
+
+        noTrigGoodMuonSFErr = std::sqrt(noTrigGoodMuonSFPErr2)*noTrigGoodMuonSF;
+
+        tr.registerDerivedVar( "totGoodMuonSF"+myVarSuffix_,      totGoodMuonSF );
+        tr.registerDerivedVar( "totGoodMuonSFErr"+myVarSuffix_,   totGoodMuonSFErr );
+        tr.registerDerivedVar( "totGoodMuonSF_Up"+myVarSuffix_,   totGoodMuonSF_Up );
+        tr.registerDerivedVar( "totGoodMuonSF_Down"+myVarSuffix_, totGoodMuonSF_Down );
+
+        tr.registerDerivedVar( "noTrigGoodMuonSF"+myVarSuffix_,   noTrigGoodMuonSF );
+        tr.registerDerivedVar( "noTrigGoodMuonSFErr"+myVarSuffix_,noTrigGoodMuonSFErr );
+>>>>>>> f90b3ea0c9e9721c86875bcb721d6bdef697295c
 
         tr.registerDerivedVar( "totNonIsoMuonSF"+myVarSuffix_,         totNonIsoMuonSF );
         tr.registerDerivedVar( "totNonIsoMuonSFErr"+myVarSuffix_,      totNonIsoMuonSFErr );
@@ -813,11 +932,10 @@ private:
             totalEventWeight = Weight*bTagWeight*totGoodMuonSF*htDerivedweight*prefiringScaleFactor*puWeightCorr;
             totalEventWeightMG = Weight*bTagWeight*totGoodMuonSF*htDerivedweightMG*prefiringScaleFactor*puWeightCorr;
         }
-
         if( NNonIsoMuons == 1 ) {
             totalEventWeightNIM = Weight*totNonIsoMuonSF*prefiringScaleFactor*puWeightCorr;
         }
-
+        
         tr.registerDerivedVar( "totalEventWeight"+myVarSuffix_, totalEventWeight );
         tr.registerDerivedVar( "totalEventWeightMG"+myVarSuffix_, totalEventWeightMG );
         tr.registerDerivedVar( "totalEventWeightNIM"+myVarSuffix_, totalEventWeightNIM );
@@ -830,7 +948,6 @@ public:
         std::cout<<"Setting up ScaleFactors"<<std::endl;
         TH1::AddDirectory(false); //According to Joe, this is a magic incantation that lets the root file close - if this is not here, there are segfaults?
 
-        
         // Getting Lepton scale factor histograms
         TFile SFRootFile( leptonFileName.c_str() );
         TString eleSFHistoTightName, eleSFHistoIsoName, eleSFHistoRecoName, eleSFHistoTrigName;
