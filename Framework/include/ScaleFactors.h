@@ -449,8 +449,8 @@ private:
                 const double muNonIsoTrigSFErr  = (nimuSFHistoTrig_) ? nimuSFHistoTrig_->GetBinError( xbinNonIsoMuTrig, ybinNonIsoMuTrig ) : 0.0;
                 const double muTrigSFPErr       = muTrigSFErr/muTrigSF;
                 const double muNonIsoTrigSFPErr = muNonIsoTrigSFErr/muNonIsoTrigSF;
-                double muNoTrigSF               = muMediumSF*muIsoSF; 
-                double muTotSF                  = muNoTrigSF*muTrigSF;
+                double muNoTrigSF               = muMediumSF; 
+                double muTotSF                  = muNoTrigSF*muIsoSF*muTrigSF;
                 double muNonIsoTotSF            = muNoTrigSF*muNonIsoTrigSF;
                 const double muNoTrigSFPErr2    = 0.03*0.03;
                 const double muTotSFPErr2       = muNoTrigSFPErr2 + muTrigSFPErr*muTrigSFPErr;
