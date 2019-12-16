@@ -69,15 +69,15 @@ private:
         double expo = 0.0;
         if( runYear == "2016" ) 
         {
-            norm = 0.04214*nJets + 0.8908;
-            expo = (-0.02387*nJets - 0.08999)/1000;
+            norm = 0.04176*nJets + 0.8915;
+            expo = (-0.02358*nJets - 0.08940)/1000;
             //norm = 0.03422*nJets + 0.9367;
             //expo = (-0.02310*nJets - 0.0940 )/1000;
         }
         else if( runYear == "2017" ) 
         {
-            norm = 0.02486*nJets + 0.9919;
-            expo = (-0.01448*nJets - 0.1221)/1000;
+            norm = 0.03923*nJets + 0.9188;
+            expo = (-0.03260*nJets - 0.03884)/1000;
             //norm = 0.02565*nJets + 0.9635;
             //expo = (-0.01418*nJets - 0.1101 )/1000;
         }
@@ -105,15 +105,15 @@ private:
         double expo = 0.0;      
         if( runYear == "2016" ) 
         {
-            norm = 1.317;
-            expo = -0.0003481;
+            norm = 1.318;
+            expo = -0.0003490;
             //norm = 1.307;
             //expo = -0.0003416;
         }
         else if( runYear == "2017" )
         {
-            norm = 1.210;
-            expo = -0.0002564;
+            norm = 1.259;
+            expo = -0.0003098;
             //norm = 1.215;
             //expo = -0.0002613;
         }
@@ -136,13 +136,13 @@ private:
         double expo = 0.0;
         if( runYear == "2016" ) 
         {
-            norm = 0.01802*nJets + 0.9762;
-            expo = (-0.003885*nJets - 0.1074)/1000;
+            norm = -0.002429 *nJets + 1.044;
+            expo = (0.01214*nJets - 0.1198)/1000;
         }
         else if( runYear == "2017" ) 
         {
-            norm = 0.01818*nJets + 1.0535;
-            expo = (0.00425*nJets - 0.3170)/1000;
+            norm = 0.1086*nJets + 0.5568;
+            expo = (-0.08962*nJets - 0.2188)/1000;
         }
         else if( runYear == "2018pre" ) 
         {
@@ -163,13 +163,13 @@ private:
         double expo = 0.0;
         if( runYear == "2016" ) 
         {
-            norm = 1.151;
-            expo = -0.0001730;
+            norm = 1.0734;
+            expo = -0.00009169;
         }
         else if( runYear == "2017" )
         {
-            norm = 1.192;
-            expo = -0.0002465;
+            norm = 1.235;
+            expo = -0.0002939;
         }
         else if( runYear == "2018pre" )
         {
